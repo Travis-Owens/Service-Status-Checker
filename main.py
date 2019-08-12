@@ -23,7 +23,6 @@ from modules.check_dns  import check_dns
 class main(object):
     def __init__(self):
 
-        self.threads = list()
         self.thread_limit = CONFIG.thread_limit
 
         self.queue = Queue()
@@ -39,11 +38,8 @@ class main(object):
         self.run()
 
     def run(self):
-        self.services = self.get_services()      # Returns a dict with all of the services
 
-        # Build queue # TODO:  Move this to the DB fetch row
-        for service in self.services:
-            self.queue.put(service)
+        database().get_services(self.queue)
 
         sleep(.001)  # queue.put() is non-blocking,this allows for the put opertaions to finish
 
@@ -58,14 +54,5 @@ class main(object):
                 t = Thread(target = method(service).check)
                 t.deamon = True
                 t.start()
-
-
-    def get_services(self):
-        # TODO: MySQL integration
-        services = [
-                {'service_id':1, 'service_name': 'google.com', 'service_type':'http', 'url':'http://google.com', 'last_checked_status': True, 'notification_email' : True, 'notification_sms': True, 'email': 'g@t.com', 'phone_number': '44444'},
-        ]
-
-        return services
 
 main()
