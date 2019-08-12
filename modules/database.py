@@ -11,7 +11,7 @@ class database(object):
         # TODO: MySQL integration
 
 
-        # TODO: Implement DB fetch here
+        # TODO: Implement DB fetch here, columns should be placed stored as a dict
         services = [
                 {'service_id':1, 'service_name': 'google.com', 'service_type':'http', 'url':'http://google.com', 'last_checked_status': True, 'notification_email' : True, 'notification_sms': True, 'email': 'g@t.com', 'phone_number': '44444'},
         ]
