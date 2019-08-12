@@ -9,18 +9,22 @@ class check_http(object):
     def __init__(self, service):
         self.service = service
         self.url = service['url']
-        pass
 
     def check(self):
         try:
-            r = requests.get(self.url)
-            status_code = r.status_code
+            # Try to retrieve webpage and retrieve the returned status code
+            request = requests.get(self.url)
+            status_code = request.status_code
 
         except requests.exceptions.ConnectionError as e:
+            # This exception triggers when the request lib cannot create a connection to the URL
             print("here" + str(e))
             ssm().event(self.service, False)
             return
+
         except Exception as e:
+            # Catch all Exception
+            # TODO: DB logging
             print(e)
 
         if(status_code == 200):
