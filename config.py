@@ -10,6 +10,15 @@ DB_USER = ''
 DB_PASS = ''
 DB_DATABASE = 'service-status-checker'
 
+#This exists so we can feed all the database information to database.py alot easier.
+DB_CONFIG = {
+	"DB_TYPE": DB_TYPE,
+	"DB_HOST": DB_HOST,
+	"DB_USER": DB_USER,
+	"DB_PASS": DB_PASS,
+	"DB_DATABASE": DB_DATABASE
+}
+
 # Notifcation Variables
 twilio_token = 'x'
 email_send_as = 'status@status_checker.local'
