@@ -32,9 +32,11 @@ class main(object):
             'dns' : check_dns,
         }
 
+        self.db_config = CONFIG.DB_CONFIG
+
     def run(self):
 
-        database().get_services(self.queue)         # Fetches services from MySQL database
+        database().get_services(self.queue, self.db_config)         # Fetches services from MySQL database
 
         self.thread_limit += int(active_count())    # Exlude runtime threads from the thread limit count
 
@@ -53,4 +55,5 @@ class main(object):
                 t.start()
         return
 
-main().run()
+if __name__ == "__main__":
+    main().run()
