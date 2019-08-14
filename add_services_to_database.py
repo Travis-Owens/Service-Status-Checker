@@ -17,9 +17,11 @@ class main(object):
 	def insert_new_service(self, iv): #iv stands for insert_values. It's shortened to keep the code below relatively short.
 		with self.connection.cursor() as cursor:
 			try:
-				cursor.execute("""INSERT INTO services (service_name, service_type, service_address, last_checked_status, notification_email, notification_sms, email, phone_number)
-								  VALUES ("{}","{}","{}","{}","{}","{}","{}","{}")""".format(
-								  iv["service_name"], iv["service_type"], iv["service_address"], int(iv["last_checked_status"]), int(iv["notification_email"]), int(iv["notification_sms"]), iv["email"], iv["phone_number"]))
+				sql = """INSERT INTO services (service_name, service_type, service_address, last_checked_status, notification_email, notification_sms, email, phone_number)
+						VALUES ("%s","%s","%s","%s","%s","%s","%s","%s")""" % (iv["service_name"], iv["service_type"], iv["service_address"], int(iv["last_checked_status"]), int(iv["notification_email"]), int(iv["notification_sms"]), iv["email"], iv["phone_number"])
+
+				#cursor.execute(self.connection.escape_string(sql))
+				cursor.execute(sql)
 				self.connection.commit()
 			except Exception as e:
 				print(e)
