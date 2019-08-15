@@ -3,12 +3,54 @@
 # Date:   2019-7-31
 
 import pymysql
+import os
+import time
 
 class database(object):
 
 	def __init__(self):
 
 		self.services = []
+
+
+	def log_error_locally(self, error_message):
+		if(os.path.exists("errorlog.txt") == True):
+			with open("errorlog.txt", "a+") as f:
+				error_message = str(time.strftime("%b %d %Y %H:%M:%S", time.gmtime(time.time()))) + "	" + str(error_message) + "\n"
+				f.write(error_message)
+				f.close()
+		else:
+			try:
+				f = open("errorlog.txt", "w+")
+				f.close()
+				self.log_error_locally(error_message)
+			except Exception as e:
+				print("Could not log error locally!")
+				print(e)
+
+	def log_error(self, error_message):
+		print(error_message)	
+		temp_connection = self.connection
+
+		with temp_connection.cursor() as cursor:
+			try:
+				#log the error locally
+				self.log_error_locally(error_message)
+
+				#log the error in the database
+				cursor.execute("""INSERT INTO exceptions (exception) VALUES ("%s")""" % (error_message))
+				temp_connection.commit()
+				print("succesfully logged exception in database")
+
+			except Exception as e:
+				#log error message locally
+				self.log_error_locally(error_message)
+
+				#log why couldn't write to database locally
+				self.log_error_locally(e)
+
+				print("!! Could not log exception!!")	
+
 
 	def create_connection(self, db_config):
 		try:
@@ -23,7 +65,7 @@ class database(object):
 
 		except Exception as e:
 			print("COULD NOT ESTABLISH CONNECTION TO DATABASE. PLEASE CHECK config.py !STOPPING ...")
-			print(e)
+			self.log_error(e)
 			exit()
 
 	def create_exceptions_table(self, connection):
@@ -38,11 +80,11 @@ class database(object):
 					print("Found 'exceptions' table!")
 				else:
 					print("COULD NOT ESTABLISH CONNECTION TO 'EXCEPTIONS' DATABSE! REASON:")
-					print(e)
+					self.log_error(e)
 
 			except Exception as e:
 				print("COULD NOT ESTABLISH CONNECTION TO 'EXCEPTIONS' DATABSE! REASON:")
-				print(e)	
+				self.log_error(e)	
 
 	def create_services_table(self, connection):
 		with connection.cursor() as cursor:
@@ -55,10 +97,10 @@ class database(object):
 				if("1050" in str(e)): #1050 is warning code for table allready exists
 					print("Found 'services' table!")
 				else:
-					print(e)
+					self.log_error(e)
 
 			except Exception as e:
-				print(e)
+				self.log_error(e)
 
 	def fetch_services(self, connection):
 		with connection.cursor() as cursor:
@@ -66,7 +108,7 @@ class database(object):
 				cursor.execute("SELECT * FROM services")
 				rows = cursor.fetchall()
 			except Exception as e:
-				print(e)
+				self.log_error(e)
 
 			if(len(rows) > 0):
 				for service in rows:
@@ -77,19 +119,6 @@ class database(object):
 			else:
 				print("No services in database! Stopping ...")
 				exit()
-
-	def log_error(self, error_message):
-		temp_connection = self.connection
-
-		with temp_connection.cursor() as cursor:
-			try:
-				cursor.execute("""INSERT INTO exceptions (exception) VALUES ("%s")""" % (error_message))
-				temp_connection.commit()
-				print("succesfully logged exception in database")
-			except Exception as e:
-				print(e)
-				print("!! Could not log exception!!")
-				#have to write exception log file thing in here		
 
 
 	def get_services(self, queue, db_config):
@@ -102,10 +131,10 @@ class database(object):
 		self.create_exceptions_table(self.connection)
 		self.create_services_table(self.connection)
 
-		self.log_error("peepeepoopoo test123")
-
 		#fetches all services form DB and adds it to self.services
 		self.fetch_services(self.connection)
 
 		for service in self.services:
 			queue.put(service)
+
+
