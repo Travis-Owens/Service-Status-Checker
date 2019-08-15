@@ -9,6 +9,7 @@ from multiprocessing import Queue
 # Local Imports
 import config as CONFIG
 from modules.database   import database
+from modules.log import logging
 
 from modules.check_http import check_http
 from modules.check_ping import check_ping
@@ -33,6 +34,8 @@ class main(object):
         }
 
         self.db_config = CONFIG.DB_CONFIG
+
+        self.logging = logging()
 
     def run(self):
 
