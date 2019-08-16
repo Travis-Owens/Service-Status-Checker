@@ -4,11 +4,12 @@
 
 import requests
 from modules.service_status_manager import service_status_manager as ssm
+from modules.log import logging
 
 class check_http(object):
     def __init__(self, service):
         self.service = service
-        self.url = service['url']
+        self.url = service['service_address']
 
     def check(self):
         try:
@@ -18,14 +19,12 @@ class check_http(object):
 
         except requests.exceptions.ConnectionError as e:
             # This exception triggers when the request lib cannot create a connection to the URL
-            print("here" + str(e))
             ssm().event(self.service, False)
             return
 
         except Exception as e:
             # Catch all Exception
-            # TODO: DB logging
-            print(e)
+            logging.log_error(e)
 
         if(status_code == 200):
             ssm().event(self.service, True)

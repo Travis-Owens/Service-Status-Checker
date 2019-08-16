@@ -3,14 +3,15 @@
 #Description: This manages database entries, along with sending notifications
 
 from modules.notification_manager import notification_manager
+from modules.database   import database
+import config as CONFIG
 
 class service_status_manager(object):
     def __init__(self):
         pass
 
     def event(self, service, current_status):
-        print("event: " + str(service['url']) + " " + str(current_status))
-        if(service['last_checked_status'] == current_status):
+        if(bool(service['last_checked_status']) == current_status):
             # No change, send no alerts
             return
 
@@ -22,7 +23,7 @@ class service_status_manager(object):
             # Service is now online
             self.send_alert(service, True)
 
-        self.db_update_status(service, current_status)
+        database().db_update_status(service, current_status, CONFIG.DB_CONFIG)
 
 
     def send_alert(self, service, status):
@@ -41,7 +42,3 @@ class service_status_manager(object):
         # Send SMS
         if(service['notification_sms'] == True):
             notification_manager().send_sms(service['phone_number'], message)
-
-
-    def db_update_status(self, service, status):
-        pass
