@@ -20,7 +20,7 @@ class database(object):
 
 		print("Attempting to connect to: '{}' at: '{}' as: '{}'".format(self.db_config["DB_DATABASE"], self.db_config["DB_HOST"], self.db_config['DB_USER']))
 		self.connection = db_connection.create_connection()
-
+		
 	def create_exceptions_table(self):
 		with self.connection.cursor() as cursor:
 			try:
@@ -72,6 +72,15 @@ class database(object):
 				self.logging.log_error(e)
 				exit()
 
+
+	def db_update_status(self, service, status):	
+
+ 		print("Updating: " + service['service_address'] + " new status: " + str(status))	
+
+ 		with self.connection.cursor() as cursor:
+ 			sql = "UPDATE services SET last_checked_status = {} WHERE service_id = {}".format(status, service['service_id'])	
+ 			cursor.execute(sql)	
+			self.connection.commit()	
 
 	def get_services(self, queue):
 
