@@ -6,29 +6,21 @@ import pymysql
 import time
 
 import config as CONFIG
+import modules.db_connection as db_connection
 
 class logging(object):
 
 	def __init__(self):
 
 		self.db_config = CONFIG.DB_CONFIG
-		self.temp_connection = self.create_connection(self.db_config)
 
+		self.temp_connection = db_connection.create_connection()
+		if(type(self.temp_connection) == type("travis big gay")):
 
-	def create_connection(self, db_config):
-		try:
-			connection = pymysql.connect(host=db_config["DB_HOST"],
-							 user=db_config["DB_USER"],
-							 password=db_config["DB_PASS"],
-							 database=db_config["DB_DATABASE"],
-							 charset='utf8mb4',
-							 cursorclass=pymysql.cursors.DictCursor)
-
-			return connection
-
-		except Exception as e:
-			print("COULD NOT ESTABLISH CONNECTION TO DATABASE. PLEASE CHECK config.py !STOPPING ...")
-			self.log_error(e)
+			self.log_error_locally(self.temp_connection) #self.temp_connection is now a string because it returned an error.
+			e = "COULD NOT ESTABLISH CONNECTION TO DATABASE. PLEASE CHECK config.py !STOPPING ..."
+			self.log_error_locally(e)
+			print(e)
 			exit()
 
 	def log_error_locally(self, error_message):
@@ -42,13 +34,14 @@ class logging(object):
 				f = open("errorlog.txt", "w+")
 				f.close()
 				self.log_error_locally(error_message)
+
 			except Exception as e:
+				#this is really the end all be all for shitty exceptions. it means that everything so far has failed. prob check if your internet is working or somethign.
 				print("Could not log error locally!")
 				print(e)
 
 	def log_error(self, error_message):
 		print(error_message)	
-		
 
 		with self.temp_connection.cursor() as cursor:
 			try:
@@ -67,4 +60,5 @@ class logging(object):
 				#log why couldn't write to database locally
 				self.log_error_locally(e)
 
-				print("!! Could not log exception!!")	
+				print("!! Could not log exception!!")
+

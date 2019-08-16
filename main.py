@@ -39,7 +39,7 @@ class main(object):
 
     def run(self):
 
-        database().get_services(self.queue, self.db_config)         # Fetches services from MySQL database
+        self.queue = database().get_services(self.queue)         #Fetches adds all services from MySQL database
 
         self.thread_limit += int(active_count())    # Exlude runtime threads from the thread limit count
 

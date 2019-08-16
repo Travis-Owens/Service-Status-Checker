@@ -6,67 +6,55 @@ import pymysql
 import os
 import time
 
+import config as CONFIG
 from modules.log import logging
+import modules.db_connection as db_connection
 
 class database(object):
 
 	def __init__(self):
 
+		self.db_config = CONFIG.DB_CONFIG
 		self.services = []
 		self.logging = logging()
 
-	def create_connection(self, db_config):
-		try:
-			connection = pymysql.connect(host=db_config["DB_HOST"],
-							 user=db_config["DB_USER"],
-							 password=db_config["DB_PASS"],
-							 database=db_config["DB_DATABASE"],
-							 charset='utf8mb4',
-							 cursorclass=pymysql.cursors.DictCursor)
+		print("Attempting to connect to: '{}' at: '{}' as: '{}'".format(self.db_config["DB_DATABASE"], self.db_config["DB_HOST"], self.db_config['DB_USER']))
+		self.connection = db_connection.create_connection()
 
-			return connection
-
-		except Exception as e:
-			print("COULD NOT ESTABLISH CONNECTION TO DATABASE. PLEASE CHECK config.py !STOPPING ...")
-			self.logging.log_error(e)
-			exit()
-
-	def create_exceptions_table(self, connection):
-		with connection.cursor() as cursor:
+	def create_exceptions_table(self):
+		with self.connection.cursor() as cursor:
 			try:
 				cursor.execute("CREATE TABLE exceptions (log_id int NOT NULL AUTO_INCREMENT PRIMARY KEY, exception TEXT, timestamp TIMESTAMP DEFAULT now() ON UPDATE now())")
-				connection.commit()
-				print("Table 'exceptions' succesfully created!")
+				self.connection.commit()
+				return True
 
 			except pymysql.MySQLError as e:
 				if("1050" in str(e)): #1050 is warning code for table allready exists
-					print("Found 'exceptions' table!")
+					return True
 				else:
-					print("COULD NOT ESTABLISH CONNECTION TO 'EXCEPTIONS' DATABSE! REASON:")
-					self.logging.log_error(e)
+					return e
 
 			except Exception as e:
-				print("COULD NOT ESTABLISH CONNECTION TO 'EXCEPTIONS' DATABSE! REASON:")
-				self.logging.log_error(e)	
+				return e
 
-	def create_services_table(self, connection):
-		with connection.cursor() as cursor:
+	def create_services_table(self,):
+		with self.connection.cursor() as cursor:
 			try:
 				cursor.execute("CREATE TABLE services (service_id int NOT NULL AUTO_INCREMENT PRIMARY KEY, service_created TIMESTAMP DEFAULT now(), last_updated TIMESTAMP DEFAULT now() ON UPDATE now(), service_name TEXT, service_type TEXT, service_address TEXT, last_checked_status BOOLEAN, notification_email BOOLEAN, notification_sms BOOLEAN, email TEXT, phone_number TEXT)")
-				connection.commit()
-				print("Table 'services' succesfully created!")
+				self.connection.commit()
+				return True
 
 			except pymysql.MySQLError as e:
 				if("1050" in str(e)): #1050 is warning code for table allready exists
-					print("Found 'services' table!")
+					return True
 				else:
-					self.logging.log_error(e)
+					return e
 
 			except Exception as e:
-				self.logging.log_error(e)
+				return e
 
-	def fetch_services(self, connection):
-		with connection.cursor() as cursor:
+	def fetch_services(self):
+		with self.connection.cursor() as cursor:
 			try:
 				cursor.execute("SELECT * FROM services")
 				rows = cursor.fetchall()
@@ -77,27 +65,32 @@ class database(object):
 				for service in rows:
 					self.services.append(service)
 
-				print("Found {} services!".format(len(self.services)))
+				print("Found {} services in: '{}' at: '{}'".format(len(self.services), self.db_config["DB_DATABASE"], self.db_config["DB_HOST"]))
 
 			else:
-				print("No services in database! Stopping ...")
+				e = "No services in database! Stopping ..."
+				self.logging.log_error(e)
 				exit()
 
 
-	def get_services(self, queue, db_config):
-
-		print("Attempting to connect to: '{}' at: '{}' as: '{}'".format(db_config["DB_DATABASE"], db_config["DB_HOST"], db_config['DB_USER']))
-		self.connection = self.create_connection(db_config)
-		print("Connected to database!")
+	def get_services(self, queue):
 
 		#Create tables if not exist, we run this every time just to be safe
-		self.create_exceptions_table(self.connection)
-		self.create_services_table(self.connection)
+		#Correct response: tables = [True, True]
+		tables =[self.create_exceptions_table(), self.create_services_table()]
+		if(tables != [True, True]):
+			if(tables[0] != True):
+				print("Exceptions table could not be found nor be created!")
+				self.logging.append(e)
+			if(tables[1] != True):
+				print("Services table could not be found nor created!")
+				self.logging.append(e)
 
 		#fetches all services form DB and adds it to self.services
-		self.fetch_services(self.connection)
+		self.fetch_services()
 
 		for service in self.services:
 			queue.put(service)
 
+		return queue
 
