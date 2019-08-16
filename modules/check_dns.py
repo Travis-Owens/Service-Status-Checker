@@ -2,7 +2,7 @@
 # Date:   2019-7-31
 
 # External Import
-import socket
+from socket import gethostbyname
 
 # Internal Imports
 from modules.log import logging
@@ -23,7 +23,7 @@ class check_dns(object):
                 hostname = self.service['service_address']
 
             # Attempt to resolve hostname
-            query = socket.gethostbyname(hostname)
+            query = gethostbyname(hostname)
 
             # If gethostbyname is unable to resolve the domain to an IP it will
             # trigger the exception below, if the script reaches this point
