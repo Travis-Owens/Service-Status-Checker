@@ -38,9 +38,6 @@ class check_dns(object):
             logging().log_error(e)
 
         # Initialize service_status_manager
-        if(status == True):
-            ssm().event(self.service, True)
-        else:
-            ssm().event(self.service, False)
+            ssm().event(self.service, status)
 
         return
