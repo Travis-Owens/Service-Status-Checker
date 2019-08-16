@@ -47,7 +47,7 @@ class database(object):
 
 			except Exception as e:
 				print("COULD NOT ESTABLISH CONNECTION TO 'EXCEPTIONS' DATABSE! REASON:")
-				self.logging.log_error(e)
+				self.logging.log_error(e)	
 
 	def create_services_table(self, connection):
 		with connection.cursor() as cursor:
@@ -100,17 +100,4 @@ class database(object):
 		for service in self.services:
 			queue.put(service)
 
-	def db_update_status(self, service, status, db_config):
 
-		print("Updating: " + service['service_address'] + " new status: " + str(status))
-
-		connection = self.create_connection(db_config)
-		cursor = connection.cursor()
-
-		sql = "UPDATE services SET last_checked_status = {} WHERE service_id = {}".format(status, service['service_id'])
-
-		cursor.execute(sql)
-		connection.commit()
-
-		cursor.close()
-		connection.close()

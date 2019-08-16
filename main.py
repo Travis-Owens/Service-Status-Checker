@@ -27,11 +27,10 @@ class main(object):
 
         #"Switch" method for mapping service type
         self.protocols = {
-            'http'  : check_http,
-            'https' : check_http,
-            'ping'  : check_ping,
-            'smtp'  : check_smtp,
-            'dns'   : check_dns,
+            'http': check_http,
+            'ping': check_ping,
+            'smtp': check_smtp,
+            'dns' : check_dns,
         }
 
         self.db_config = CONFIG.DB_CONFIG
