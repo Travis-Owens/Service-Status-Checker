@@ -20,5 +20,10 @@ DB_CONFIG = {
 }
 
 # Notifcation Variables
-twilio_token = 'x'
+twilio_phone_number = ""
+twilio_account_sid = 'ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+twilio_auth_token = 'your_auth_token'
+
+
+
 email_send_as = 'status@status_checker.local'
